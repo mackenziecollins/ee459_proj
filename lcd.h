@@ -1,4 +1,11 @@
 //lcd.hvoid setup();
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdio.h>
+#include <string.h>
+// #include "lcd.h"
+#include "i2c.h"
+
 void pre_setup(void);
 void i2c_init(uint8_t);
 uint8_t i2c_io(uint8_t, uint8_t *, uint16_t,
