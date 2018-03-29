@@ -1,0 +1,21 @@
+Some notes for programming PCF8563, for future programming efforts.
+
+Other important information are already contained in datasheet: https://www.nxp.com/docs/en/data-sheet/PCF8563.pdf
+So this note will not contain them.
+
+1. Remember to initialize / clear off all registers before putting data in.
+
+2. This note file comes with some online coding examples. Those online coding examples Do Not work, because we don't have
+the <Wire.h> library. So instead we have to use i2c functions, already contained in i2c.h and i2c.o. The functions there were
+written by professor Allan Weber. 
+
+3. In order to communicate with RTC, every i2c message (?) need to be prepended by the target register's internal address. Treat
+this as part of the message. So in order to use i2c_io, the parameter should be something like this:
+
+[device address (0xA3 default)],[target register internal address],...
+... [1(for the length of targeted internal address)],[message],[message length]......
+
+It is unknown whether it is function i2c_io's problem of missing characters when transmitting multiple characters, or LCD's problem
+to receive / print them. So be careful when doing so. 
+
+4. To be continued
