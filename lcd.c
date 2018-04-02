@@ -8,18 +8,17 @@
 # define FOSC 9830400 // Clock frequency = Oscillator freq .
 # define BDIV ( FOSC / 100000 - 16) / 2 + 1
 
-void pre_setup(void);
-void setup();
-void i2c_init(uint8_t);
-uint8_t i2c_io(uint8_t, uint8_t *, uint16_t,
-               uint8_t *, uint16_t, uint8_t *, uint16_t);
-void Display_On(void);
-void Display_Clear(void);
-void Set_Cursor_Line_1(void);
-void Set_Cursor_Line_2(void);
-void Cursor_Home(void);
-void Cursor_Right(void);
-void Print_a_character(uint8_t);
+// void pre_setup(void);
+// void i2c_init(uint8_t);
+// uint8_t i2c_io(uint8_t, uint8_t *, uint16_t,
+//                uint8_t *, uint16_t, uint8_t *, uint16_t);
+// void Display_On(void);
+// void Display_Clear(void);
+// void Set_Cursor_Line_1(void);
+// void Set_Cursor_Line_2(void);
+// void Cursor_Home(void);
+// void Cursor_Right(void);
+// void Print_a_character(uint8_t);
 
 
 #define I2C_ADDRESS        0x50  //LCD I2C address  0x28??? It should be 0x50 
@@ -67,9 +66,9 @@ void setup()
   // Wire.write(0xFE);           //Prefix 
   // Wire.write("0123456789");  //Display Text
   // Wire.endTransmission();
-  unsigned char blink_cursor[2] = {LCD_PRE, BLINK_CURSOR_ON};
-  i2c_io (I2C_ADDRESS, NULL, 0, blink_cursor, 2, NULL, 0);
-  _delay_ms(200);
+  // unsigned char blink_cursor[2] = {LCD_PRE, BLINK_CURSOR_ON};
+  // i2c_io (I2C_ADDRESS, NULL, 0, blink_cursor, 2, NULL, 0);
+  // _delay_ms(200);
 
   unsigned char brightness[3] = {LCD_PRE, 0x53, 3};
   i2c_io (I2C_ADDRESS, NULL, 0, brightness, 3, NULL, 0);
@@ -133,14 +132,16 @@ void setup()
 }
 
 
-void Print_a_character(uint8_t input){
-  unsigned char buf[1];
-  buf[0] = input;
-  i2c_io (I2C_ADDRESS, NULL, 0, &buf, 1, NULL, 0);
+uint8_t Print_a_character(uint8_t input){
+  unsigned char buf;
+  buf = input;
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, &buf, 1, NULL, 0);
+  _delay_ms(5);
+  return status;
 }
 
 
-void Display_On(void)
+uint8_t Display_On(void)
 {
   // Wire.beginTransmission(I2C_ADDRESS);  
   // Wire.write(0xFE);           //Prefix 
@@ -149,11 +150,12 @@ void Display_On(void)
   // delay(2);                 //wait for a 1/4 second
 
   unsigned char buf[2] = {LCD_PRE, DISPLAY_ON};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
   _delay_ms(300);
+  return status;
 }
 
-void Display_Clear(void)
+uint8_t Display_Clear(void)
 {
 
 
@@ -164,11 +166,12 @@ void Display_Clear(void)
   // delay(2);                 //wait for a 1/4 second
 
   unsigned char buf[2] = {LCD_PRE, CLEAR_SCREEN};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
   _delay_ms(300);
+  return status;
 }
 
-void Set_Cursor_Line_1(void)
+uint8_t Set_Cursor_Line_1(void)
 {
   // Wire.beginTransmission(I2C_ADDRESS);  
   // Wire.write(0xFE);         //Prefix 
@@ -178,11 +181,12 @@ void Set_Cursor_Line_1(void)
   // delay(2);               //wait for a 1/4 second
 
   unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x00};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
   _delay_ms(300);
+  return status;
 }
 
-void Set_Cursor_Line_2(void)
+uint8_t Set_Cursor_Line_2(void)
 {
   // Wire.beginTransmission(I2C_ADDRESS);  
   // Wire.write(0xFE);         //Prefix 
@@ -192,11 +196,12 @@ void Set_Cursor_Line_2(void)
   // delay(2);               //wait for a 1/4 second
 
   unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x40};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
   _delay_ms(300);
+  return status;
 }
 
-void Cursor_Home(void)
+uint8_t Cursor_Home(void)
 {
   // Wire.beginTransmission(I2C_ADDRESS);  
   // Wire.write(0xFE);           //Prefix 
@@ -205,11 +210,12 @@ void Cursor_Home(void)
   // delay(2);                 //wait for a 1/4 second
 
   unsigned char buf[2] = {LCD_PRE, CURSOR_HOME};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
-  _delay_ms(300);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+  _delay_ms(10);
+  return status;
 }
 
-void Cursor_Right(void)
+uint8_t Cursor_Right(void)
 {
   // Wire.beginTransmission(I2C_ADDRESS);  
   // Wire.write(0xFE);           //Prefix 
@@ -218,6 +224,23 @@ void Cursor_Right(void)
   // delay(2);                 //wait for a 1/4 second
 
   unsigned char buf[2] = {LCD_PRE, MOVE_CURSOR_RIGHT};
-  unsigned char status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
-  _delay_ms(300);
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+  _delay_ms(5);
+  return status;
+}
+
+uint8_t Cursor_Left(void)
+{
+  unsigned char buf[2] = {LCD_PRE, MOVE_CURSOR_LEFT};
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+  _delay_ms(5);
+  return status;
+}
+
+uint8_t Cursor_POS(unsigned char pos)
+{
+  unsigned char buf[3] = {LCD_PRE, 0x45, pos};
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 3, NULL, 0);
+  _delay_ms(20);
+  return status;
 }
