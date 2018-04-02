@@ -120,9 +120,13 @@
 char strOut[9];
 char strDate[11];
 
-unsigned char sec;
+unsigned char second;
 unsigned char minute;
 unsigned char hour;
+unsigned char day;
+unsigned char weekday;
+unsigned char month;
+unsigned char year;
 
 // int Rtcc_Addr;
 

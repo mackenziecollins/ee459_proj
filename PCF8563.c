@@ -195,7 +195,7 @@ void clearStatus()
  //  Wire.endTransmission();  
 }
 
-void setTime(char hour, char minute, char sec)
+void setTime(char input_hour, char input_minute, char input_sec)
 {
  //  Wire.beginTransmission(Rtcc_Addr);	// Issue I2C start signal
  //  Wire.send(RTCC_SEC_ADDR);   	// send addr low char, req'd
@@ -208,35 +208,35 @@ void setTime(char hour, char minute, char sec)
   unsigned char wbuf;
 
   abuf = RTCC_SEC_ADDR;
-  wbuf = decToBcd(sec);
+  wbuf = decToBcd(input_sec);
   i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
   _delay_ms(10);
 
   abuf = RTCC_MIN_ADDR;
-  wbuf = decToBcd(minute);
+  wbuf = decToBcd(input_minute);
   i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
   _delay_ms(10);
 
   abuf = RTCC_HR_ADDR;
-  wbuf = decToBcd(hour);
+  wbuf = decToBcd(input_hour);
   i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
   _delay_ms(10);
 }
 
-void setDate(char day, char weekday, char mon, char century, char year)
+void setDate(char input_day, char input_weekday, char input_month, char input_century, char input_year)
 {
     /* year val is 00 to 99, xx
         with the highest bit of month = century
         0=20xx
         1=19xx
         */
-    month = decToBcd(mon);
-    if (century == 1){
-        month |= RTCC_CENTURY_MASK;
-    }
-    else {
-        month &= ~RTCC_CENTURY_MASK;
-    }
+  month = decToBcd(input_month);
+  if (input_century == 1){
+      month |= RTCC_CENTURY_MASK;
+  }
+  else {
+      month &= ~RTCC_CENTURY_MASK;
+  }
     // Wire.beginTransmission(Rtcc_Addr);    // Issue I2C start signal
     // Wire.send(RTCC_DAY_ADDR);
     // Wire.send(decToBcd(day));            //set day
@@ -244,6 +244,28 @@ void setDate(char day, char weekday, char mon, char century, char year)
     // Wire.send(month);                         //set month, century to 1
     // Wire.send(decToBcd(year));        //set year to 99
     // Wire.endTransmission();
+  unsigned char abuf;
+  unsigned char wbuf;
+
+  abuf = RTCC_DAY_ADDR;
+  wbuf = decToBcd(input_day);
+  i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
+  _delay_ms(10);
+
+  abuf = RTCC_WEEKDAY_ADDR;
+  wbuf = decToBcd(input_weekday);
+  i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
+  _delay_ms(10);
+
+  abuf = RTCC_MONTH_ADDR;
+  wbuf = decToBcd(input_month);
+  i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
+  _delay_ms(10);
+
+  abuf = RTCC_YEAR_ADDR;
+  wbuf = decToBcd(input_year);
+  i2c_io (Rtcc_Addr, &abuf, 1, &wbuf, 1, NULL, 0);
+  _delay_ms(10);
 }
 
 /* enable alarm interrupt
@@ -480,7 +502,7 @@ void getTime()
   uint8_t status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
   _delay_ms(5);
   if(status==0){
-    sec = bcdToDec(rbuf & 0x7f);
+    second = bcdToDec(rbuf & 0x7f);
   }
 
   abuf = RTCC_MIN_ADDR;
@@ -616,8 +638,8 @@ unsigned char getSecond() {
   while(status!=0){
     status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
   }
-  sec = bcdToDec(rbuf & 0x7f);
-  return sec;
+  second = bcdToDec(rbuf & 0x7f);
+  return second;
 }
 
 unsigned char getMinute() {
@@ -633,7 +655,7 @@ unsigned char getMinute() {
     status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
   }
   minute = bcdToDec(rbuf & 0x7f);
-  return minute
+  return minute;
 }
 
 unsigned char getHour() {
