@@ -138,7 +138,7 @@ void initClock();		/* zero out all values, disable all alarms */
 void clearStatus();	/* set both status bytes to zero */
 
 void getDate();			/* get date vals to local vars */
-// void setDate(byte day, byte weekday, byte month, byte century, byte year);
+void setDate(char input_day, char input_weekday, char input_month, char input_century, char input_year);
 void getTime();    /* get time vars + 2 status bytes to local vars */
 void getAlarm();
 void setTime(char sec, char minute, char hour);
@@ -156,10 +156,10 @@ void resetAlarm();  /* clear alarm flag but leave interrupt unchanged */
 unsigned char getSecond();
 unsigned char getMinute();
 unsigned char getHour();
-// byte getDay();
-// byte getMonth();
-// byte getYear();
-// byte getWeekday();
+unsigned char getDay();
+unsigned char getMonth();
+unsigned char getYear();
+unsigned char getWeekday();
 // byte getStatus1();
 // byte getStatus2();
 

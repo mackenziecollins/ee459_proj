@@ -452,31 +452,61 @@ bool alarmActive()
 // }
 
 /* call this first to load current date values to variables */
-// void getDate()
-// {  
-// 	/* set the start char of the date data */
-// 	// Wire.beginTransmission(Rtcc_Addr);
-//  // 	Wire.send(RTCC_DAY_ADDR);
-//  // 	Wire.endTransmission();
+void getDate()
+{  
+	/* set the start char of the date data */
+	// Wire.beginTransmission(Rtcc_Addr);
+ // 	Wire.send(RTCC_DAY_ADDR);
+ // 	Wire.endTransmission();
   	
-//  // 	Wire.requestFrom(Rtcc_Addr, 4); //request 4 chars
-// 	//0x3f = 0b00111111
-// 	// day = bcdToDec(Wire.receive() & 0x3f);
-// 	//0x07 = 0b00000111
-// 	// weekday = bcdToDec(Wire.receive() & 0x07);
-// 	//get raw month data char and set month and century with it.
-// 	// month = Wire.receive();
-// 	if (month & RTCC_CENTURY_MASK) {
-// 		century = 1;
-// 	}
-// 	else {
-// 		century = 0;
-// 	}
-// 	//0x1f = 0b00011111
-// 	month = month & 0x1f;
-// 	month = bcdToDec(month);
-// 	// year = bcdToDec(Wire.receive());  
-// }
+ // 	Wire.requestFrom(Rtcc_Addr, 4); //request 4 chars
+	//0x3f = 0b00111111
+	// day = bcdToDec(Wire.receive() & 0x3f);
+	//0x07 = 0b00000111
+	// weekday = bcdToDec(Wire.receive() & 0x07);
+	//get raw month data char and set month and century with it.
+	// month = Wire.receive();
+	// if (month & RTCC_CENTURY_MASK) {
+	// 	century = 1;
+	// }
+	// else {
+	// 	century = 0;
+	// }
+	// //0x1f = 0b00011111
+	// month = month & 0x1f;
+	// month = bcdToDec(month);
+	// year = bcdToDec(Wire.receive());  
+  unsigned char rbuf;
+  unsigned char abuf;
+
+  abuf = RTCC_DAY_ADDR;
+  uint8_t status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
+  _delay_ms(5);
+  if(status==0){
+    day = bcdToDec(rbuf & 0x3f);
+  }
+
+  abuf = RTCC_WEEKDAY_ADDR;
+  status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
+  _delay_ms(5);
+  if(status==0){
+    weekday = bcdToDec(rbuf & 0x07);
+  }
+
+  abuf = RTCC_MONTH_ADDR;
+  status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
+  _delay_ms(5);
+  if(status==0){
+    month = bcdToDec(rbuf & 0x1f);
+  }
+
+  abuf = RTCC_YEAR_ADDR;
+  status = i2c_io(RTCC_R, &abuf, 1, NULL, 0, &rbuf, 1);
+  _delay_ms(5);
+  if(status==0){
+    year = bcdToDec(rbuf);
+  }
+}
 
 
 /* call this first to load current time values to variables */
@@ -694,25 +724,25 @@ unsigned char getHour() {
 //     return alarm_weekday;
 // }
 
-// char getDay() {
-//   getDate();
-// 	return day;
-// }
+unsigned char getDay() {
+  getDate();
+	return day;
+}
 
-// char getMonth() {
-// 	getDate();
-//   return month;
-// }
+unsigned char getMonth() {
+	getDate();
+  return month;
+}
 
-// char getYear() {
-//   getDate();
-// 	return year;
-// }
+unsigned char getYear() {
+  getDate();
+	return year;
+}
 
-// char getWeekday() {
-//   getDate();
-// 	return weekday;
-// }
+unsigned char getWeekday() {
+  getDate();
+	return weekday;
+}
 
 // char getStatus1() {
 // 	return status1;

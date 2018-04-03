@@ -14,6 +14,11 @@ unsigned char old_sec = NULL;
 unsigned char old_minute = NULL;
 unsigned char old_hour = NULL;
 
+unsigned char old_day = NULL;
+// unsigned char old_weekday = NULL;
+unsigned char old_month = NULL;
+unsigned char old_year = NULL;
+
 void adc_subroutine(){
 		//Start ADC on channel 1 = PC1
 	int result1 = readAdc(1);
@@ -85,7 +90,7 @@ void adc_subroutine(){
 	_delay_ms(100);
 }
 
-char rtc_subroutine(){
+char rtc_subroutine_time(){
 	unsigned char current_sec = getSecond();
 	unsigned char current_minute = getMinute();
 	unsigned char current_hour = getHour();
@@ -109,7 +114,7 @@ char rtc_subroutine(){
 		temp = current_hour % 10;
 		unsigned char ones = temp;
 
-		uint8_t status = Cursor_POS(0x00);
+		uint8_t status = Cursor_POS(0x40);
 		_delay_ms(10);
 		if(status==0){
 
@@ -137,7 +142,7 @@ char rtc_subroutine(){
 		temp = current_minute % 10;
 		unsigned char ones = temp;
 
-		uint8_t status = Cursor_POS(0x02);
+		uint8_t status = Cursor_POS(0x42);
 		_delay_ms(10);
 		if(status==0){
 
@@ -165,7 +170,7 @@ char rtc_subroutine(){
 		temp = current_sec % 10;
 		unsigned char ones = temp;
 
-		uint8_t status = Cursor_POS(0x04);
+		uint8_t status = Cursor_POS(0x44);
 		_delay_ms(10);
 		if(status==0){
 
@@ -188,6 +193,115 @@ char rtc_subroutine(){
 	return 1;
 }
 
+char rtc_subroutine_date(){
+	unsigned char current_day = getDay();
+	unsigned char current_weekday = getWeekday();
+	unsigned char current_month = getMonth();
+	unsigned char current_year = getYear();
+	_delay_ms(10);
+	bool update_day = 0;
+	bool update_month = 0;
+	bool update_year = 0;
+	if(old_day != current_day){
+		update_day = 1;
+	}
+	if(old_month != current_month){
+		update_month = 1;
+	}
+	if(old_year != current_year){
+		update_year = 1;
+	}
+
+	if(update_year){
+		unsigned char temp;
+		unsigned char tens = current_year / 10;
+		temp = current_year % 10;
+		unsigned char ones = temp;
+
+		uint8_t status = Cursor_POS(0x00);
+		_delay_ms(10);
+		if(status==0){
+
+			unsigned char out = 0x30;
+			out += tens;
+			status = Print_a_character(out);
+			_delay_ms(10);
+			if(status==0){
+
+				out = 0x30;
+				out += ones;
+				status = Print_a_character(out);
+				_delay_ms(10);
+
+				old_year = current_year;
+			}
+		}
+	}
+
+	// Print_a_character(0x3C);
+
+	if(update_month){
+		unsigned char temp;
+		unsigned char tens = current_month / 10;
+		temp = current_month % 10;
+		unsigned char ones = temp;
+
+		uint8_t status = Cursor_POS(0x02);
+		_delay_ms(10);
+		if(status==0){
+
+			unsigned char out = 0x30;
+			out += tens;
+			status = Print_a_character(out);
+			_delay_ms(10);
+			if(status==0){
+
+				out = 0x30;
+				out += ones;
+				status = Print_a_character(out);
+				_delay_ms(10);
+
+				old_month = current_month;
+			}
+		}
+	}
+
+	// Print_a_character(0x3C);
+
+	if(update_day){
+		unsigned char temp;
+		unsigned char tens = current_day / 10;
+		temp = current_day % 10;
+		unsigned char ones = temp;
+
+		uint8_t status = Cursor_POS(0x04);
+		_delay_ms(10);
+		if(status==0){
+
+			unsigned char out = 0x30;
+			out += tens;
+			status = Print_a_character(out);
+			_delay_ms(10);
+			if(status==0){
+
+				out = 0x30;
+				out += ones;
+				status = Print_a_character(out);
+				_delay_ms(10);
+
+				old_day = current_day;
+			}
+		}
+
+		//Then print which weekday
+		unsigned char out = 0x30;
+		out += current_weekday;
+		status = Print_a_character(out);
+	}
+
+	return 1;
+}
+
 int main(void){
 	PORTC = 0x00;
 	DDRC = 0x00;
@@ -197,7 +311,8 @@ int main(void){
 	_delay_ms(200);
 
 	initClock();
-	setTime(12,59,20);
+	setTime(23,59,00);
+	setDate(30, 4, 9, 0, 18);
 
 
 	Display_Clear();
@@ -205,7 +320,8 @@ int main(void){
 	while(1){
 		// _delay_ms(200);	
 		// adc_subroutine();
-		char flag = rtc_subroutine();
+		rtc_subroutine_time();
+		char flag = rtc_subroutine_date();
 
 		if(flag){
 			// Cursor_Home();
