@@ -40,6 +40,27 @@
 
 #define LCD_PRE            0xFE
 
+
+char displayCapLetter[] = 
+{
+  0x41, 0x42, 0x43, 0x44, 0x45,
+  0x46, 0x47, 0x48, 0x49, 0x4A,
+  0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
+  0x50, 0x51, 0x52, 0x53, 0x54,
+  0x55, 0x56, 0x57, 0x58, 0x59,
+  0x5A
+};
+
+char displaySmlLetter[] = 
+{
+  0x61, 0x62, 0x63, 0x64, 0x65,
+  0x66, 0x67, 0x68, 0x69, 0x6A,
+  0x6B, 0x6C, 0x6D, 0x6E, 0x6F,
+  0x70, 0x71, 0x72, 0x73, 0x74,
+  0x75, 0x76, 0x77, 0x78, 0x79,
+  0x7A
+};
+
 void pre_setup(void){
   PORTC |= (1 << PC1);        // Enable pull-up for switch on PORTC bit 1
   setup();
@@ -136,8 +157,24 @@ uint8_t Print_a_character(uint8_t input){
   unsigned char buf;
   buf = input;
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, &buf, 1, NULL, 0);
-  _delay_ms(5);
+  _delay_ms(10);
   return status;
+}
+
+uint8_t Print_multiple_character(char* input, int length){
+  for(; *input!='\0';input++){
+    unsigned char buf = 0x20;;
+      if(*input == ' '){
+        buf = 0x20;
+      }else if(*input >= 'A' && *input <= 'Z'){
+        buf = displayCapLetter[*input-'A'];
+      }else if(*input >= 'a' && *input <= 'z'){
+        buf = displaySmlLetter[*input-'a'];
+      }
+      Print_a_character(buf);
+      // _delay_ms(10);
+  }
+  return 0;
 }
 
 
@@ -153,6 +190,13 @@ uint8_t Display_On(void)
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
   _delay_ms(300);
   return status;
+}
+
+uint8_t Cursor_BACKSPACE(void){
+    unsigned char buf[2] = {LCD_PRE, BACKSPACE};
+    uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, buf, 2, NULL, 0);
+    _delay_ms(20);
+    return status;
 }
 
 uint8_t Display_Clear(void)
@@ -182,7 +226,7 @@ uint8_t Set_Cursor_Line_1(void)
 
   unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x00};
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
-  _delay_ms(300);
+  _delay_ms(10);
   return status;
 }
 
@@ -197,7 +241,37 @@ uint8_t Set_Cursor_Line_2(void)
 
   unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x40};
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
-  _delay_ms(300);
+  _delay_ms(10);
+  return status;
+}
+
+uint8_t Set_Cursor_Line_3(void)
+{
+  // Wire.beginTransmission(I2C_ADDRESS);  
+  // Wire.write(0xFE);         //Prefix 
+  // Wire.write(0x45);         //Set Cursor
+  // Wire.write(0x40);         //
+  // Wire.endTransmission();
+  // delay(2);               //wait for a 1/4 second
+
+  unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x14};
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
+  _delay_ms(10);
+  return status;
+}
+
+uint8_t Set_Cursor_Line_4(void)
+{
+  // Wire.beginTransmission(I2C_ADDRESS);  
+  // Wire.write(0xFE);         //Prefix 
+  // Wire.write(0x45);         //Set Cursor
+  // Wire.write(0x40);         //
+  // Wire.endTransmission();
+  // delay(2);               //wait for a 1/4 second
+
+  unsigned char send_buf[3] = {LCD_PRE, 0x45, 0x54};
+  uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, send_buf, 3, NULL, 0);
+  _delay_ms(10);
   return status;
 }
 
