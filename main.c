@@ -6,6 +6,7 @@
 #include "adc.h"
 #include "lcd.h"
 #include "PCF8563.h"
+#include "sci.h"
 
 # define FOSC 9830400 // Clock frequency = Oscillator freq .
 # define BDIV ( FOSC / 100000 - 16) / 2 + 1
@@ -49,6 +50,9 @@ unsigned char old_day = NULL;
 // unsigned char old_weekday = NULL;
 unsigned char old_month = NULL;
 unsigned char old_year = NULL;
+
+extern bool Received_ISR_end;
+extern Array* storage_buffer;
 
 // char letter_to_lcd_hex(char input){
 // 	if(input == ' '){
@@ -393,7 +397,10 @@ int main(void){
 
 	Display_Clear();
 	_delay_ms(50);
+	Set_Cursor_Line_1();
+	_delay_ms(50);
 
+	/* ----------------------- Segment for menu testing
 	Set_Cursor_Line_1();
 	_delay_ms(50);
 	Print_multiple_character(MENU_LV1_1, MYSTRING_LEN(MENU_LV1_1));
@@ -407,6 +414,7 @@ int main(void){
 	_delay_ms(50);
 	Print_multiple_character(MENU_LV1_4, MYSTRING_LEN(MENU_LV1_4));
 	Cursor_Home();
+	*/
 	while(1){
 		// _delay_ms(200);	
 		// adc_subroutine();
@@ -508,7 +516,8 @@ int main(void){
 		// char to_print = 0x30 + button_state;
 		// Print_a_character(to_print);
 		// _delay_ms(10);
-		
+
+		/*----------------------- Segment for basic menu navigation
 		switch(test_menu){
 			case MENU_1:
 				Set_Cursor_Line_1();
@@ -576,6 +585,7 @@ int main(void){
 				break;
 		}
 		_delay_ms(200);
+		*/
 	}
 	return 0;
 }
