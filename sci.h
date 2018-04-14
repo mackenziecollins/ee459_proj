@@ -8,3 +8,5 @@ void sci_init(void);
 void sci_out(char ch);
 void sci_outs(char *s);
 ISR(USART_RX_vect);
+void clear_buffer(void);
+char sci_in();

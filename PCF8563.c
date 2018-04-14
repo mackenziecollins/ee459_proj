@@ -301,6 +301,7 @@ char readStatus2()
 
     // Wire.requestFrom(Rtcc_Addr, 1); //request 1 chars
     // return Wire.read();
+  return 0;
 }
 
 /*

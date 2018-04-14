@@ -3,6 +3,7 @@
 #include <util/delay.h>
 #include <stdio.h>
 #include <string.h>
+#include <avr/interrupt.h>
 #include "adc.h"
 #include "lcd.h"
 #include "PCF8563.h"
@@ -52,7 +53,11 @@ unsigned char old_month = NULL;
 unsigned char old_year = NULL;
 
 extern bool Received_ISR_end;
-extern Array* storage_buffer;
+extern struct Array* storage_buffer;
+
+volatile int count = 0;
+volatile int before = 0;
+volatile int hold = 0;
 
 // char letter_to_lcd_hex(char input){
 // 	if(input == ' '){
@@ -79,6 +84,8 @@ void adc_subroutine(){
 
 	int ones = temp;
 
+	Set_Cursor_Line_1();
+	_delay_ms(10);
 	char out = 0x30;
 	out += thousands;
 	Print_a_character(out);
@@ -210,31 +217,31 @@ char rtc_subroutine_time(){
 
 	// Print_a_character(0x3C);
 
-	if(update_sec){
-		unsigned char temp;
-		unsigned char tens = current_sec / 10;
-		temp = current_sec % 10;
-		unsigned char ones = temp;
+	// if(update_sec){
+	// 	unsigned char temp;
+	// 	unsigned char tens = current_sec / 10;
+	// 	temp = current_sec % 10;
+	// 	unsigned char ones = temp;
 
-		uint8_t status = Cursor_POS(0x44);
-		_delay_ms(10);
-		if(status==0){
+	// 	uint8_t status = Cursor_POS(0x44);
+	// 	_delay_ms(10);
+	// 	if(status==0){
 
-			unsigned char out = 0x30;
-			out += tens;
-			status = Print_a_character(out);
-			_delay_ms(10);
-			if(status==0){
+	// 		unsigned char out = 0x30;
+	// 		out += tens;
+	// 		status = Print_a_character(out);
+	// 		_delay_ms(10);
+	// 		if(status==0){
 
-				out = 0x30;
-				out += ones;
-				status = Print_a_character(out);
-				_delay_ms(10);
+	// 			out = 0x30;
+	// 			out += ones;
+	// 			status = Print_a_character(out);
+	// 			_delay_ms(10);
 
-				old_sec = current_sec;
-			}
-		}
-	}
+	// 			old_sec = current_sec;
+	// 		}
+	// 	}
+	// }
 
 	return 1;
 }
@@ -370,20 +377,113 @@ char checkInput(char bit)
         return(0);
 }
 
+
+ISR(PCINT0_vect){
+    //shift four bits to the right to make easier to handle
+    hold = (( PINB & 0b00000110) >> 1);
+    // Print_a_character(0x70);
+    
+    //starting at 0
+    if (before == 0){
+        //turned clockwise
+        if (hold == 1){
+            count++;
+            if(count>59){
+            	count=0;
+            }
+        }
+        //turned counter clockwise
+        else if (hold == 2){
+            count--;
+            if(count<0){
+            	count=59;
+            }
+        }
+    }
+    
+    //starting at 1
+    else if (before == 1){
+        //turned clockwise
+        if (hold == 3){
+            count++;
+            if(count>59){
+            	count=0;
+            }
+        }
+        //turned counterclockwise
+        else if(hold == 0){
+            count--;
+            if(count<0){
+            	count=59;
+            }
+        }
+        
+    }
+    
+    //starting at 3
+    else if (before == 3){
+        //turned clockwise
+        if (hold == 2){
+            count++;
+            if(count>59){
+            	count=0;
+            }
+        }
+        //turned counterclockwise
+        else if (hold == 1){
+            count--;
+            if(count<0){
+            	count=59;
+            }
+        }
+        
+    }
+    
+    //starting at 2
+    else if (before == 2){
+        //turned clockwise
+        if (hold == 0){
+            count++;
+            if(count>59){
+            	count=0;
+            }
+        }
+        //turned counterclockwise
+        else if (hold == 3){
+            count--;
+            if(count<0){
+            	count=59;
+            }
+        }
+        
+    }
+    
+    before = hold;
+}
+
 int main(void){
 	// PORTC = 0x00;
-	DDRC = 0xFF;
+	DDRC &= 0b11110000;
 
 	PORTD = 0x00;
 	DDRD &= 0b11000011; // 5, 4, 3, 2 is input
 
-	enum STATE_BUTTON test_button = STATE_B_INIT;
-	enum STATE_MENU test_menu = MENU_1;
-	char buttonUL = 0;
-	char buttonUR = 0;
-	char buttonBL = 0;
-	char buttonBR = 0;
-	char button_check = 0;
+	PORTB |= (1 << PB1) | (1 << PB2);
+	DDRB &= 0b11111001;
+
+	PCICR |= (1 << PCIE0);
+    
+    PCMSK0 |= (1 << PCINT1);
+    PCMSK0 |= (1 << PCINT2);
+    sei();
+
+	// enum STATE_BUTTON test_button = STATE_B_INIT;
+	// enum STATE_MENU test_menu = MENU_1;
+	// char buttonUL = 0;
+	// char buttonUR = 0;
+	// char buttonBL = 0;
+	// char buttonBR = 0;
+	// char button_check = 0;
 
 	adc_init();
 	pre_setup();
@@ -391,7 +491,7 @@ int main(void){
 	_delay_ms(200);
 
 	initClock();
-	setTime(23,59,00);
+	setTime(23,59,30);
 	setDate(30, 4, 9, 0, 18);
 
 
@@ -399,6 +499,8 @@ int main(void){
 	_delay_ms(50);
 	Set_Cursor_Line_1();
 	_delay_ms(50);
+
+	// sci_init();
 
 	/* ----------------------- Segment for menu testing
 	Set_Cursor_Line_1();
@@ -415,15 +517,27 @@ int main(void){
 	Print_multiple_character(MENU_LV1_4, MYSTRING_LEN(MENU_LV1_4));
 	Cursor_Home();
 	*/
+
+	/* ----------------------  Segment for Serial Communication Testing
+	*/
+
+	// sci_outs("AT");
+	// sci_out('A');
+	// rtc_subroutine_time();
+	// Print_a_character(0x30);
+	
 	while(1){
-		// _delay_ms(200);	
+		// sci_out(0b01010101);
+		// sci_outs("AT");
+		// _delay_ms(100);	
+		// sci_outs("AT");
 		// adc_subroutine();
 		// rtc_subroutine_time();
 		// char flag = rtc_subroutine_date();
 
 		// if(flag){
-			// Cursor_Home();
-			// Display_Clear();
+		// 	Cursor_Home();
+		// 	Display_Clear();
 		// }
 		// _delay_ms(100);
 		// char flag = checkInput(4);
@@ -445,7 +559,7 @@ int main(void){
 
 		        Current implementation only allow one button to be pressed at a time
 		*/
-		
+		/*
 		char button_state = 0;
 		switch(test_button){
 			case STATE_B_INIT:
@@ -511,6 +625,8 @@ int main(void){
 				}
 				break;			
 		}
+		*/
+
 		// Cursor_Home();
 
 		// char to_print = 0x30 + button_state;
@@ -518,6 +634,8 @@ int main(void){
 		// _delay_ms(10);
 
 		/*----------------------- Segment for basic menu navigation
+		*/
+		/*
 		switch(test_menu){
 			case MENU_1:
 				Set_Cursor_Line_1();
@@ -586,6 +704,26 @@ int main(void){
 		}
 		_delay_ms(200);
 		*/
+
+		/* ----------------------------- Segment for Serial Communication Testing
+		*/
+		// if(Received_ISR_end){
+		// 	Received_ISR_end = 0;
+		// 	Print_multiple_character(storage_buffer->array, storage_buffer->size);
+		// 	clear_buffer();
+		// }
+		// Print_a_character(sci_in());
+
+		/*------------------------------- Segment for Rotary Encoder Testing
+		*/
+		char tens = count / 10;
+		char out = 0x30 + tens;
+		Print_a_character(out);
+		tens = count - tens*10;
+		out = 0x30 + tens;
+		Print_a_character(out);
+		Cursor_Home();
+
 	}
 	return 0;
 }

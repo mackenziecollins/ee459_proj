@@ -5,7 +5,7 @@
 #include "lcd.h"
 // #include "i2c.h"
 
-# define FOSC 9830400 // Clock frequency = Oscillator freq .
+# define FOSC 7372800 // Clock frequency = Oscillator freq .
 # define BDIV ( FOSC / 100000 - 16) / 2 + 1
 
 // void pre_setup(void);
@@ -87,9 +87,9 @@ void setup()
   // Wire.write(0xFE);           //Prefix 
   // Wire.write("0123456789");  //Display Text
   // Wire.endTransmission();
-  // unsigned char blink_cursor[2] = {LCD_PRE, BLINK_CURSOR_ON};
-  // i2c_io (I2C_ADDRESS, NULL, 0, blink_cursor, 2, NULL, 0);
-  // _delay_ms(200);
+  unsigned char blink_cursor[2] = {LCD_PRE, BLINK_CURSOR_ON};
+  i2c_io (I2C_ADDRESS, NULL, 0, blink_cursor, 2, NULL, 0);
+  _delay_ms(200);
 
   unsigned char brightness[3] = {LCD_PRE, 0x53, 3};
   i2c_io (I2C_ADDRESS, NULL, 0, brightness, 3, NULL, 0);

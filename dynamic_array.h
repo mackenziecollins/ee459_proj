@@ -7,14 +7,14 @@
 #ifndef SOME_HEADER_GUARD_WITH_UNIQUE_NAME
 #define SOME_HEADER_GUARD_WITH_UNIQUE_NAME
 
-typedef struct {
+struct Array{
   char *array;
   size_t used;
   size_t size;
-} Array;
+};
 
-void initArray(Array *a, size_t initialSize);
-void insertArray(Array *a, char element);
-void freeArray(Array *a);
+void initArray(struct Array *a, size_t initialSize);
+void insertArray(struct Array *a, char element);
+void freeArray(struct Array *a);
 
 #endif

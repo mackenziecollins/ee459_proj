@@ -9,12 +9,12 @@
 */
 #include "sci.h"
 
-#define FOSC 9830400		// Clock frequency
-#define BAUD 19200              // Baud rate used by the LCD
+#define FOSC 7372800		// Clock frequency
+#define BAUD 115200              // Baud rate used by the LCD
 #define MYUBRR FOSC/16/BAUD-1   // Value for UBRR0 register
 
-bool Received_ISR_end = 0;
-Array* storage_buffer;
+volatile bool Received_ISR_end = 0;
+volatile struct Array *storage_buffer;
 
 void sci_init(void) {
     UCSR0B |= (1 << RXCIE0);    // Enable receiver interrupts
@@ -22,10 +22,10 @@ void sci_init(void) {
     sei();                      // Enable interrupts
 
     UBRR0 = MYUBRR;          // Set baud rate
-    UCSR0B |= (1 << TXEN0);  // Turn on transmitter
     UCSR0C = (3 << UCSZ00);  // Set for asynchronous operation, no parity, 
                              // one stop bit, 8 data bits
-    initArray(storage_buffer, 4);
+    UCSR0B |= (1 << TXEN0);  // Turn on transmitter
+    // initArray(storage_buffer, 4);
 }
 
 /*
@@ -47,6 +47,11 @@ void sci_outs(char *s)
 
     while ((ch = *s++) != '\0')
         sci_out(ch);
+}
+
+char sci_in(){
+	while(!(UCSR0A & (1<<RXC0)));
+	 return UDR0;
 }
 
 ISR(USART_RX_vect)
