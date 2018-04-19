@@ -156,6 +156,13 @@ void setup()
 uint8_t Print_a_character(uint8_t input){
   unsigned char buf;
   buf = input;
+  if(input == ' '){
+    buf = 0x20;
+  }else if(input >= 'A' && input <= 'Z'){
+    buf = displayCapLetter[input-'A'];
+  }else if(input >= 'a' && input <= 'z'){
+    buf = displaySmlLetter[input-'a'];
+  }
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, &buf, 1, NULL, 0);
   _delay_ms(10);
   return status;
