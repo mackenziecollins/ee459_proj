@@ -9,7 +9,7 @@
 #include "PCF8563.h"
 #include "sci.h"
 
-# define FOSC 9830400 // Clock frequency = Oscillator freq .
+# define FOSC 7372800 // Clock frequency = Oscillator freq .
 # define BDIV ( FOSC / 100000 - 16) / 2 + 1
 
 #define MYSTRING_LEN(s) strlen(s)
@@ -52,8 +52,14 @@ unsigned char old_day = NULL;
 unsigned char old_month = NULL;
 unsigned char old_year = NULL;
 
-extern bool Received_ISR_end;
-extern struct Array* storage_buffer;
+// extern bool Received_ISR_end;
+// extern struct Array* storage_buffer;
+// extern char single_buf;
+
+// char single_buf;
+volatile char single_buf[4];
+volatile bool Received_ISR_end = 0;
+volatile int counter = 0;
 
 volatile int count = 0;
 volatile int before = 0;
@@ -461,6 +467,29 @@ ISR(PCINT0_vect){
     before = hold;
 }
 
+ISR(USART_RX_vect)
+{
+	// Code to be executed when the USART receives a byte here
+	char ch;
+
+    ch = UDR0;                  // Get the received charater
+
+    // Store in buffer
+    // insertArray(storage_buffer, ch);
+    if(!Received_ISR_end){
+    // Print_a_character(ch);
+      single_buf[counter] = ch;
+      counter++;
+    }
+    if(counter == 4){
+    	Received_ISR_end = 1;
+    }
+    // If message complete, set flag
+    // if(ch == '\n'){ // read until see a newline character
+    // 	Received_ISR_end = 1;
+    // }
+}
+
 int main(void){
 	// PORTC = 0x00;
 	DDRC &= 0b11110000;
@@ -475,24 +504,24 @@ int main(void){
     
     PCMSK0 |= (1 << PCINT1);
     PCMSK0 |= (1 << PCINT2);
-    sei();
+    // sei();
 
-	// enum STATE_BUTTON test_button = STATE_B_INIT;
-	// enum STATE_MENU test_menu = MENU_1;
-	// char buttonUL = 0;
-	// char buttonUR = 0;
-	// char buttonBL = 0;
-	// char buttonBR = 0;
-	// char button_check = 0;
+	enum STATE_BUTTON test_button = STATE_B_INIT;
+	enum STATE_MENU test_menu = MENU_1;
+	char buttonUL = 0;
+	char buttonUR = 0;
+	char buttonBL = 0;
+	char buttonBR = 0;
+	char button_check = 0;
 
 	adc_init();
 	pre_setup();
 	i2c_init(BDIV*2);
 	_delay_ms(200);
 
-	initClock();
-	setTime(23,59,30);
-	setDate(30, 4, 9, 0, 18);
+	// initClock();
+	// setTime(23,59,30);
+	// setDate(30, 4, 9, 0, 18);
 
 
 	Display_Clear();
@@ -500,7 +529,7 @@ int main(void){
 	Set_Cursor_Line_1();
 	_delay_ms(50);
 
-	// sci_init();
+	sci_init();
 
 	/* ----------------------- Segment for menu testing
 	Set_Cursor_Line_1();
@@ -524,12 +553,13 @@ int main(void){
 	// sci_outs("AT");
 	// sci_out('A');
 	// rtc_subroutine_time();
-	// Print_a_character(0x30);
-	
+	// Print_a_character(0x35);
 	while(1){
+		// Print_a_character(0x35);
 		// sci_out(0b01010101);
-		// sci_outs("AT");
-		// _delay_ms(100);	
+		// _delay_ms(1000);
+		// sci_out('X');
+		// sci_outs("aBcd");
 		// sci_outs("AT");
 		// adc_subroutine();
 		// rtc_subroutine_time();
@@ -559,7 +589,7 @@ int main(void){
 
 		        Current implementation only allow one button to be pressed at a time
 		*/
-		/*
+		
 		char button_state = 0;
 		switch(test_button){
 			case STATE_B_INIT:
@@ -598,6 +628,7 @@ int main(void){
 
 			case STATE_B_UL_PRESSED:
 				button_state = 2;
+				Display_Clear();
 				button_check = checkInput(3);
 				if(button_check){
 					test_button = STATE_B_INIT;
@@ -605,6 +636,9 @@ int main(void){
 				break;
 			case STATE_B_UR_PRESSED:
 				button_state = 4;
+				sci_outs("SEND");
+				Set_Cursor_Line_2();
+				Print_multiple_character("SEND", 4);
 				button_check = checkInput(2);
 				if(button_check){
 					test_button = STATE_B_INIT;
@@ -619,13 +653,17 @@ int main(void){
 				break;
 			case STATE_B_BR_PRESSED:
 				button_state = 8;
+				sci_outs("GGGG");
+				Set_Cursor_Line_2();
+				Print_multiple_character("GGGG", 4);
+				button_check = checkInput(2);
 				button_check = checkInput(5);
 				if(button_check){
 					test_button = STATE_B_INIT;
 				}
 				break;			
 		}
-		*/
+		
 
 		// Cursor_Home();
 
@@ -707,22 +745,33 @@ int main(void){
 
 		/* ----------------------------- Segment for Serial Communication Testing
 		*/
-		// if(Received_ISR_end){
-		// 	Received_ISR_end = 0;
-		// 	Print_multiple_character(storage_buffer->array, storage_buffer->size);
-		// 	clear_buffer();
-		// }
+		if(Received_ISR_end){
+			// Print_multiple_character(storage_buffer->array, storage_buffer->size);
+			// clear_buffer();
+			Set_Cursor_Line_1();
+			// Display_Clear();
+			// Cursor_Home();
+			Print_multiple_character(single_buf, 4);
+			Received_ISR_end = 0;
+			counter = 0;
+			_delay_ms(100);
+			// sci_outs("ACKK");
+		}
+		// Print_a_character(single_buf);
 		// Print_a_character(sci_in());
+
+		// while(!(UCSR0A & (1<<RXC0)));
+		// 	 Print_a_character(UDR0);
 
 		/*------------------------------- Segment for Rotary Encoder Testing
 		*/
-		char tens = count / 10;
-		char out = 0x30 + tens;
-		Print_a_character(out);
-		tens = count - tens*10;
-		out = 0x30 + tens;
-		Print_a_character(out);
-		Cursor_Home();
+		// char tens = count / 10;
+		// char out = 0x30 + tens;
+		// Print_a_character(out);
+		// tens = count - tens*10;
+		// out = 0x30 + tens;
+		// Print_a_character(out);
+		// Cursor_Home();
 
 	}
 	return 0;
