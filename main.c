@@ -67,7 +67,7 @@ unsigned char old_year = NULL;
 // extern char single_buf;
 
 // char single_buf;
-volatile char single_buf[4];
+volatile char single_buf[10];
 volatile bool Received_ISR_end = 0;
 volatile int counter = 0;
 
