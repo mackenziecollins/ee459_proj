@@ -13,10 +13,16 @@
 # define BDIV ( FOSC / 100000 - 16) / 2 + 1
 
 #define MYSTRING_LEN(s) strlen(s)
-#define MENU_LV1_1 "Menu Item A"
-#define MENU_LV1_2 "Menu Item B"
-#define MENU_LV1_3 "Menu Item C"
-#define MENU_LV1_4 "Menu Item D"
+#define T_MENU_1_1_LV1 "Local Control"
+#define T_MENU_2_1_LV1 "Remote Control"
+#define T_MENU_3_1_LV1 "Menu Item C"
+#define T_MENU_4_1_LV1 "Menu Item D"
+
+#define T_MENU_1_1_LV2 "Display Local Sensor"
+#define T_MENU_2_1_LV2 "Operation Modes"
+#define T_MENU_3_1_LV2 "Threshold Setting"
+
+#define T_MENU_1_2_LV2 "Display Remote Sensor"
 
 // define state number for state machine
 
@@ -27,7 +33,9 @@ enum STATE_BUTTON {STATE_BUTTON_UP_LEFT, STATE_BUTTON_BOTTOM_LEFT,
 				   STATE_B_INIT};
 
 enum STATE_MENU {
-				MENU_1, MENU_2, MENU_3, MENU_4
+				MENU_1_1_LV1, MENU_2_1_LV1, MENU_3_1_LV1, MENU_4_1_LV1,
+
+				MENU_1_1_LV2, MENU_2_1_LV2, MENU_3_1_LV2,
 				};
 
 
@@ -383,6 +391,38 @@ char checkInput(char bit)
         return(0);
 }
 
+void reset_to_menu_lv1(void){
+	Display_Clear();
+
+	Set_Cursor_Line_2();
+	_delay_ms(50);
+	Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
+	Set_Cursor_Line_3();
+	_delay_ms(50);
+	Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
+	Set_Cursor_Line_4();
+	_delay_ms(50);
+	Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
+	
+	Set_Cursor_Line_1();
+	_delay_ms(50);
+	Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
+	Print_a_character(0x3c);
+}
+
+void reset_to_menu_1_lv2(void){
+	Display_Clear();
+
+	Set_Cursor_Line_2();
+	Print_multiple_character(T_MENU_2_1_LV2, MYSTRING_LEN(T_MENU_2_1_LV2));
+
+	Set_Cursor_Line_3();
+	Print_multiple_character(T_MENU_3_1_LV2, MYSTRING_LEN(T_MENU_3_1_LV2));
+
+	Set_Cursor_Line_1();
+	Print_multiple_character(T_MENU_1_1_LV2, MYSTRING_LEN(T_MENU_1_1_LV2));
+	Print_a_character(0x3c);
+}
 
 ISR(PCINT0_vect){
     //shift four bits to the right to make easier to handle
@@ -507,7 +547,7 @@ int main(void){
     // sei();
 
 	enum STATE_BUTTON test_button = STATE_B_INIT;
-	enum STATE_MENU test_menu = MENU_1;
+	enum STATE_MENU test_menu = MENU_1_1_LV1;
 	char buttonUL = 0;
 	char buttonUR = 0;
 	char buttonBL = 0;
@@ -531,21 +571,21 @@ int main(void){
 
 	sci_init();
 
-	/* ----------------------- Segment for menu testing
+	// ----------------------- Segment for menu testing
 	Set_Cursor_Line_1();
 	_delay_ms(50);
-	Print_multiple_character(MENU_LV1_1, MYSTRING_LEN(MENU_LV1_1));
+	Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
 	Set_Cursor_Line_2();
 	_delay_ms(50);
-	Print_multiple_character(MENU_LV1_2, MYSTRING_LEN(MENU_LV1_2));
+	Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
 	Set_Cursor_Line_3();
 	_delay_ms(50);
-	Print_multiple_character(MENU_LV1_3, MYSTRING_LEN(MENU_LV1_3));
+	Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
 	Set_Cursor_Line_4();
 	_delay_ms(50);
-	Print_multiple_character(MENU_LV1_4, MYSTRING_LEN(MENU_LV1_4));
+	Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
 	Cursor_Home();
-	*/
+	
 
 	/* ----------------------  Segment for Serial Communication Testing
 	*/
@@ -590,6 +630,8 @@ int main(void){
 		        Current implementation only allow one button to be pressed at a time
 		*/
 		
+		//   State transition model, only deal with state transition
+		//   Maybe also called Control Unit?
 		char button_state = 0;
 		switch(test_button){
 			case STATE_B_INIT:
@@ -673,75 +715,117 @@ int main(void){
 
 		/*----------------------- Segment for basic menu navigation
 		*/
-		/*
+		
 		switch(test_menu){
-			case MENU_1:
-				Set_Cursor_Line_1();
-				Print_multiple_character(MENU_LV1_1, MYSTRING_LEN(MENU_LV1_1));
-				Print_a_character(0x3c);
-				if(test_button==STATE_B_UL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_4;
-				}else if(test_button==STATE_B_BL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_2;
+			case MENU_1_1_LV1:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_4_1_LV1;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_2_1_LV1;
+				}else if(test_button==STATE_BUTTON_UP_RIGHT){
+					test_menu = MENU_1_1_LV2;
+					reset_to_menu_1_lv2();
 				}
 				break;
-			case MENU_2:
-				Set_Cursor_Line_2();
-				Print_multiple_character(MENU_LV1_2, MYSTRING_LEN(MENU_LV1_2));
-				Print_a_character(0x3c);
-				if(test_button==STATE_B_UL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_1;
-				}else if(test_button==STATE_B_BL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_3;
+			case MENU_2_1_LV1:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_1_1_LV1;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_3_1_LV1;
 				}
 				break;
-			case MENU_3:
-				Set_Cursor_Line_3();
-				Print_multiple_character(MENU_LV1_3, MYSTRING_LEN(MENU_LV1_3));
-				Print_a_character(0x3c);
-				if(test_button==STATE_B_UL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_2;
-				}else if(test_button==STATE_B_BL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_4;
+			case MENU_3_1_LV1:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_2_1_LV1;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_4_1_LV1;
 				}
 				break;
-			case MENU_4:
-				Set_Cursor_Line_4();
-				Print_multiple_character(MENU_LV1_4, MYSTRING_LEN(MENU_LV1_4));
-				Print_a_character(0x3c);
-				if(test_button==STATE_B_UL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_3;
-				}else if(test_button==STATE_B_BL_PRESSED){
-					Cursor_BACKSPACE();
-					// Cursor_BACKSPACE();
-					Print_multiple_character("         ", 9);
-					test_menu = MENU_1;
+			case MENU_4_1_LV1:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_3_1_LV1;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_1_1_LV1;
+				}
+				break;
+			case MENU_1_1_LV2:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_3_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_2_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+					test_menu = MENU_1_1_LV1;
+					reset_to_menu_lv1();
+				}
+				break;
+			case MENU_2_1_LV2:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_1_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_3_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+					test_menu = MENU_1_1_LV1;
+					reset_to_menu_lv1();
+				}
+				break;
+			case MENU_3_1_LV2:
+				if(test_button==STATE_BUTTON_UP_LEFT){
+					test_menu = MENU_2_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+					test_menu = MENU_1_1_LV2;
+				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+					test_menu = MENU_1_1_LV1;
+					reset_to_menu_lv1();
 				}
 				break;
 		}
+
+		switch(test_menu){
+			case MENU_1_1_LV1:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_1();
+				Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
+				Print_a_character(0x3c);
+				break;
+			case MENU_2_1_LV1:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_2();
+				Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
+				Print_a_character(0x3c);
+				break;
+			case MENU_3_1_LV1:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_3();
+				Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
+				Print_a_character(0x3c);
+				break;
+			case MENU_4_1_LV1:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_4();
+				Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
+				Print_a_character(0x3c);
+				break;
+			case MENU_1_1_LV2:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_1();
+				Print_multiple_character(T_MENU_1_1_LV2, MYSTRING_LEN(T_MENU_1_1_LV2));
+				Print_a_character(0x3c);
+				break;
+			case MENU_2_1_LV2:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_2();
+				Print_multiple_character(T_MENU_2_1_LV2, MYSTRING_LEN(T_MENU_2_1_LV2));
+				Print_a_character(0x3c);
+				break;
+			case MENU_3_1_LV2:
+				Cursor_BACKSPACE();
+				Set_Cursor_Line_3();
+				Print_multiple_character(T_MENU_3_1_LV2, MYSTRING_LEN(T_MENU_3_1_LV2));
+				Print_a_character(0x3c);
+				break;
+		}
 		_delay_ms(200);
-		*/
+		
 
 		/* ----------------------------- Segment for Serial Communication Testing
 		*/
