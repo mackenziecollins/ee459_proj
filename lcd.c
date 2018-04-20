@@ -61,6 +61,12 @@ char displaySmlLetter[] =
   0x7A
 };
 
+char displayNumber[] = 
+{
+  0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
+  0x36, 0x37, 0x38, 0x39, 0x3A
+};
+
 void pre_setup(void){
   PORTC |= (1 << PC1);        // Enable pull-up for switch on PORTC bit 1
   setup();
@@ -162,6 +168,8 @@ uint8_t Print_a_character(uint8_t input){
     buf = displayCapLetter[input-'A'];
   }else if(input >= 'a' && input <= 'z'){
     buf = displaySmlLetter[input-'a'];
+  }else if(input >= '0' && input <= '9'){
+    buf = displayNumber[input-'0'];
   }
   uint8_t status = i2c_io (I2C_ADDRESS, NULL, 0, &buf, 1, NULL, 0);
   _delay_ms(10);
@@ -177,6 +185,8 @@ uint8_t Print_multiple_character(char* input, int length){
         buf = displayCapLetter[*input-'A'];
       }else if(*input >= 'a' && *input <= 'z'){
         buf = displaySmlLetter[*input-'a'];
+      }else if(*input >= '0' && *input <= '9'){
+        buf = displayNumber[*input-'0'];
       }
       Print_a_character(buf);
       // _delay_ms(10);
