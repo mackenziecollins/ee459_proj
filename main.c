@@ -50,6 +50,8 @@ enum STATE_MENU {
 // # define STATE_B_BR_PRESSED 8
 
 // # define STATE_B_INIT 0
+int adc_photo = 0;
+int adc_moist = 0;
 
 unsigned char old_sec = NULL;
 unsigned char old_minute = NULL;
@@ -87,6 +89,7 @@ volatile int hold = 0;
 void adc_subroutine(){
 		//Start ADC on channel 1 = PC1
 	int result1 = readAdc(1);
+	adc_photo = result1;
 	int thousands = result1 / 1000;
 	int temp = result1 %1000;
 
@@ -125,6 +128,7 @@ void adc_subroutine(){
 
 	//Start ADC on channel 2 = PC2
 	int result2 = readAdc(2);
+	adc_moist = result2;
 	thousands = result2 / 1000;
 	temp = result2 %1000;
 
@@ -521,7 +525,7 @@ ISR(USART_RX_vect)
       single_buf[counter] = ch;
       counter++;
     }
-    if(counter == 4){
+    if(counter == 10){
     	Received_ISR_end = 1;
     }
     // If message complete, set flag
@@ -572,19 +576,19 @@ int main(void){
 	sci_init();
 
 	// ----------------------- Segment for menu testing
-	Set_Cursor_Line_1();
-	_delay_ms(50);
-	Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
-	Set_Cursor_Line_2();
-	_delay_ms(50);
-	Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
-	Set_Cursor_Line_3();
-	_delay_ms(50);
-	Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
-	Set_Cursor_Line_4();
-	_delay_ms(50);
-	Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
-	Cursor_Home();
+	// Set_Cursor_Line_1();
+	// _delay_ms(50);
+	// Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
+	// Set_Cursor_Line_2();
+	// _delay_ms(50);
+	// Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
+	// Set_Cursor_Line_3();
+	// _delay_ms(50);
+	// Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
+	// Set_Cursor_Line_4();
+	// _delay_ms(50);
+	// Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
+	// Cursor_Home();
 	
 
 	/* ----------------------  Segment for Serial Communication Testing
@@ -630,8 +634,8 @@ int main(void){
 		        Current implementation only allow one button to be pressed at a time
 		*/
 		
-		//   State transition model, only deal with state transition
-		//   Maybe also called Control Unit?
+		  // State transition model, only deal with state transition
+		  // Maybe also called Control Unit?
 		char button_state = 0;
 		switch(test_button){
 			case STATE_B_INIT:
@@ -707,124 +711,124 @@ int main(void){
 		}
 		
 
-		// Cursor_Home();
+		// // Cursor_Home();
 
-		// char to_print = 0x30 + button_state;
-		// Print_a_character(to_print);
-		// _delay_ms(10);
+		// // char to_print = 0x30 + button_state;
+		// // Print_a_character(to_print);
+		// // _delay_ms(10);
 
-		/*----------------------- Segment for basic menu navigation
-		*/
+		// /*----------------------- Segment for basic menu navigation
+		// */
 		
-		switch(test_menu){
-			case MENU_1_1_LV1:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_4_1_LV1;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_2_1_LV1;
-				}else if(test_button==STATE_BUTTON_UP_RIGHT){
-					test_menu = MENU_1_1_LV2;
-					reset_to_menu_1_lv2();
-				}
-				break;
-			case MENU_2_1_LV1:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_1_1_LV1;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_3_1_LV1;
-				}
-				break;
-			case MENU_3_1_LV1:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_2_1_LV1;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_4_1_LV1;
-				}
-				break;
-			case MENU_4_1_LV1:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_3_1_LV1;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_1_1_LV1;
-				}
-				break;
-			case MENU_1_1_LV2:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_3_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_2_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
-					test_menu = MENU_1_1_LV1;
-					reset_to_menu_lv1();
-				}
-				break;
-			case MENU_2_1_LV2:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_1_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_3_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
-					test_menu = MENU_1_1_LV1;
-					reset_to_menu_lv1();
-				}
-				break;
-			case MENU_3_1_LV2:
-				if(test_button==STATE_BUTTON_UP_LEFT){
-					test_menu = MENU_2_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
-					test_menu = MENU_1_1_LV2;
-				}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
-					test_menu = MENU_1_1_LV1;
-					reset_to_menu_lv1();
-				}
-				break;
-		}
+		// switch(test_menu){
+		// 	case MENU_1_1_LV1:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_4_1_LV1;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_2_1_LV1;
+		// 		}else if(test_button==STATE_BUTTON_UP_RIGHT){
+		// 			test_menu = MENU_1_1_LV2;
+		// 			reset_to_menu_1_lv2();
+		// 		}
+		// 		break;
+		// 	case MENU_2_1_LV1:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_1_1_LV1;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_3_1_LV1;
+		// 		}
+		// 		break;
+		// 	case MENU_3_1_LV1:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_2_1_LV1;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_4_1_LV1;
+		// 		}
+		// 		break;
+		// 	case MENU_4_1_LV1:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_3_1_LV1;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_1_1_LV1;
+		// 		}
+		// 		break;
+		// 	case MENU_1_1_LV2:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_3_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_2_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+		// 			test_menu = MENU_1_1_LV1;
+		// 			reset_to_menu_lv1();
+		// 		}
+		// 		break;
+		// 	case MENU_2_1_LV2:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_1_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_3_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+		// 			test_menu = MENU_1_1_LV1;
+		// 			reset_to_menu_lv1();
+		// 		}
+		// 		break;
+		// 	case MENU_3_1_LV2:
+		// 		if(test_button==STATE_BUTTON_UP_LEFT){
+		// 			test_menu = MENU_2_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_LEFT){
+		// 			test_menu = MENU_1_1_LV2;
+		// 		}else if(test_button==STATE_BUTTON_BOTTOM_RIGHT){
+		// 			test_menu = MENU_1_1_LV1;
+		// 			reset_to_menu_lv1();
+		// 		}
+		// 		break;
+		// }
 
-		switch(test_menu){
-			case MENU_1_1_LV1:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_1();
-				Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
-				Print_a_character(0x3c);
-				break;
-			case MENU_2_1_LV1:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_2();
-				Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
-				Print_a_character(0x3c);
-				break;
-			case MENU_3_1_LV1:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_3();
-				Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
-				Print_a_character(0x3c);
-				break;
-			case MENU_4_1_LV1:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_4();
-				Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
-				Print_a_character(0x3c);
-				break;
-			case MENU_1_1_LV2:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_1();
-				Print_multiple_character(T_MENU_1_1_LV2, MYSTRING_LEN(T_MENU_1_1_LV2));
-				Print_a_character(0x3c);
-				break;
-			case MENU_2_1_LV2:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_2();
-				Print_multiple_character(T_MENU_2_1_LV2, MYSTRING_LEN(T_MENU_2_1_LV2));
-				Print_a_character(0x3c);
-				break;
-			case MENU_3_1_LV2:
-				Cursor_BACKSPACE();
-				Set_Cursor_Line_3();
-				Print_multiple_character(T_MENU_3_1_LV2, MYSTRING_LEN(T_MENU_3_1_LV2));
-				Print_a_character(0x3c);
-				break;
-		}
-		_delay_ms(200);
+		// switch(test_menu){
+		// 	case MENU_1_1_LV1:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_1();
+		// 		Print_multiple_character(T_MENU_1_1_LV1, MYSTRING_LEN(T_MENU_1_1_LV1));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_2_1_LV1:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_2();
+		// 		Print_multiple_character(T_MENU_2_1_LV1, MYSTRING_LEN(T_MENU_2_1_LV1));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_3_1_LV1:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_3();
+		// 		Print_multiple_character(T_MENU_3_1_LV1, MYSTRING_LEN(T_MENU_3_1_LV1));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_4_1_LV1:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_4();
+		// 		Print_multiple_character(T_MENU_4_1_LV1, MYSTRING_LEN(T_MENU_4_1_LV1));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_1_1_LV2:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_1();
+		// 		Print_multiple_character(T_MENU_1_1_LV2, MYSTRING_LEN(T_MENU_1_1_LV2));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_2_1_LV2:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_2();
+		// 		Print_multiple_character(T_MENU_2_1_LV2, MYSTRING_LEN(T_MENU_2_1_LV2));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// 	case MENU_3_1_LV2:
+		// 		Cursor_BACKSPACE();
+		// 		Set_Cursor_Line_3();
+		// 		Print_multiple_character(T_MENU_3_1_LV2, MYSTRING_LEN(T_MENU_3_1_LV2));
+		// 		Print_a_character(0x3c);
+		// 		break;
+		// }
+		// _delay_ms(200);
 		
 
 		/* ----------------------------- Segment for Serial Communication Testing
@@ -832,13 +836,20 @@ int main(void){
 		if(Received_ISR_end){
 			// Print_multiple_character(storage_buffer->array, storage_buffer->size);
 			// clear_buffer();
-			Set_Cursor_Line_1();
+			// Set_Cursor_Line_1();
 			// Display_Clear();
-			// Cursor_Home();
-			Print_multiple_character(single_buf, 4);
+			if(single_buf[0] == '0' && single_buf[1] == '1' && single_buf[2] == 'A' && single_buf[3] == 'B'){
+				Cursor_Home();
+				_delay_ms(20);
+				Print_multiple_character(single_buf, 10);
+			}else if(single_buf[0] == '0' && single_buf[1] == '1' && single_buf[2] == 'A' && single_buf[3] == 'C'){
+				Set_Cursor_Line_2();
+				_delay_ms(20);
+				Print_multiple_character(single_buf, 10);
+			}
 			Received_ISR_end = 0;
 			counter = 0;
-			_delay_ms(100);
+			// _delay_ms(200);
 			// sci_outs("ACKK");
 		}
 		// Print_a_character(single_buf);

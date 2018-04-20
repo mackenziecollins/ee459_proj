@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <avr/interrupt.h>
+#include "adc.h"
 #include "sci.h"
 
 # define FOSC 9830400 // Clock frequency = Oscillator freq .
@@ -12,7 +13,8 @@
 
 #define MYSTRING_LEN(s) strlen(s)
 
-
+volatile int adc_photo = 0;
+volatile int adc_moist = 0;
 
 unsigned char old_sec = NULL;
 unsigned char old_minute = NULL;
@@ -23,7 +25,7 @@ unsigned char old_day = NULL;
 unsigned char old_month = NULL;
 unsigned char old_year = NULL;
 
-volatile char single_buf[4];
+volatile char single_buf[10];
 volatile bool Received_ISR_end = 0;
 volatile int counter = 0;
 
@@ -31,6 +33,15 @@ volatile int count = 0;
 volatile int before = 0;
 volatile int hold = 0;
 
+void adc_subroutine(){
+        //Start ADC on channel 1 = PC1
+    int result1 = readAdc(2);
+    adc_photo = result1;
+
+    //Start ADC on channel 2 = PC2
+    int result2 = readAdc(3);
+    adc_moist = result2;
+}
 
 char checkInput(char bit)
 {
@@ -138,13 +149,31 @@ ISR(USART_RX_vect)
       single_buf[counter] = ch;
       counter++;
     }
-    if(counter == 4){
+    if(counter == 10){
     	Received_ISR_end = 1;
     }
     // If message complete, set flag
     // if(ch == '\n'){ // read until see a newline character
     // 	Received_ISR_end = 1;
     // }
+}
+
+void send_photo(){
+    char str[6];
+    sprintf(str, "%06d", adc_photo);
+    char msg[10];
+    strcpy(msg, "01AB");
+    strcat(msg, str);
+    sci_outs(msg);
+}
+
+void send_moist(){
+    char str[6];
+    sprintf(str, "%06d", adc_moist);
+    char msg[10];
+    strcpy(msg, "01AC");
+    strcat(msg, str);
+    sci_outs(msg);
 }
 
 void message_waiting_routine(){
@@ -169,6 +198,7 @@ int main(void){
     PCMSK0 |= (1 << PCINT2);
     // sei();
 
+    adc_init();
 
 	sci_init();
 
@@ -182,15 +212,12 @@ int main(void){
 	
 	while(1){
 		// sci_out(0b01010101);
-		_delay_ms(1000);
+		// _delay_ms(100);
 		// sci_outs("AbCd");
+        adc_subroutine();
 
-		message_waiting_routine();
-		if(strcmp("SEND", single_buf)==0){
-			sci_outs("RecV");
-		}else{
-            sci_outs("WHat");
-        }
+        send_photo();
+        send_moist();
 
 		/* ----------------------------- Segment for Serial Communication Testing
 		*/
