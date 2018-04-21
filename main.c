@@ -866,7 +866,7 @@ int main(void){
 		// tens = count - tens*10;
 		// out = 0x30 + tens;
 		// Print_a_character(out);
-		// Cursor_Home();
+		Cursor_Home();
 
 	}
 	return 0;
