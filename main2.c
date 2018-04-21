@@ -140,7 +140,7 @@ ISR(USART_RX_vect)
 	// Code to be executed when the USART receives a byte here
 	char ch;
 
-    ch = UDR0;                  // Get the received charater
+    ch = sci_in();                  // Get the received charater
 
     // Store in buffer
     // insertArray(storage_buffer, ch);
@@ -217,7 +217,9 @@ int main(void){
         adc_subroutine();
 
         send_photo();
+        _delay_ms(20);
         send_moist();
+        _delay_ms(20);
 
 		/* ----------------------------- Segment for Serial Communication Testing
 		*/

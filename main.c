@@ -516,7 +516,7 @@ ISR(USART_RX_vect)
 	// Code to be executed when the USART receives a byte here
 	char ch;
 
-    ch = UDR0;                  // Get the received charater
+    ch = sci_in();                  // Get the received charater
 
     // Store in buffer
     // insertArray(storage_buffer, ch);
